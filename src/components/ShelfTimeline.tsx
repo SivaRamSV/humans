@@ -36,7 +36,7 @@ function useBreakpoint() {
 
 export function ShelfTimeline() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { expandedEras, toggleExpanded, openModal, activeIndex, setActiveIndex } = useTimelineStore();
+  const { openModal, activeIndex, setActiveIndex, isModalOpen } = useTimelineStore();
   const { isMobile, isTablet } = useBreakpoint();
 
   const mouseX = useMotionValue(0);
@@ -56,12 +56,12 @@ export function ShelfTimeline() {
       } else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         const currentEra = timelineData[activeIndex];
-        if (currentEra) toggleExpanded(currentEra.id);
+        if (currentEra) openModal(currentEra);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeIndex, toggleExpanded, setActiveIndex]);
+  }, [activeIndex, openModal, setActiveIndex]);
 
   // Mouse wheel navigation
   useEffect(() => {
@@ -164,7 +164,7 @@ export function ShelfTimeline() {
       />
 
       {/* Timeline at TOP */}
-      <TimelineScrubber activeIndex={activeIndex} onIndexChange={setActiveIndex} isCardExpanded={expandedEras.size > 0} />
+      <TimelineScrubber activeIndex={activeIndex} onIndexChange={setActiveIndex} isCardExpanded={isModalOpen} />
 
       {/* Main content - Cards below timeline */}
       <div className="flex-1 flex items-center justify-center relative" style={{ perspective: '1200px', marginTop: isMobile ? '-120px' : '-60px' }}>
@@ -209,9 +209,7 @@ export function ShelfTimeline() {
                   era={era}
                   offset={offset}
                   isActive={offset === 0}
-                  isExpanded={expandedEras.has(era.id)}
-                  onSelect={() => offset === 0 ? toggleExpanded(era.id) : setActiveIndex(index)}
-                  onOpenModal={() => openModal(era)}
+                  onSelect={() => offset === 0 ? openModal(era) : setActiveIndex(index)}
                   isMobile={isMobile}
                   isTablet={isTablet}
                 />
@@ -253,13 +251,11 @@ function NavArrow({ direction, onClick, disabled, color = '#00f5ff' }: {
 }
 
 // Era Card - Clean Professional Design with responsive sizing
-function EraCard({ era, offset, isActive, isExpanded, onSelect, onOpenModal, isMobile, isTablet }: {
+function EraCard({ era, offset, isActive, onSelect, isMobile, isTablet }: {
   era: typeof timelineData[0];
   offset: number;
   isActive: boolean;
-  isExpanded: boolean;
   onSelect: () => void;
-  onOpenModal: () => void;
   isMobile: boolean;
   isTablet: boolean;
 }) {
@@ -294,7 +290,6 @@ function EraCard({ era, offset, isActive, isExpanded, onSelect, onOpenModal, isM
       <motion.div
         style={{ width: cardWidth, cursor: 'pointer', userSelect: 'none' }}
         onClick={onSelect}
-        onDoubleClick={onOpenModal}
         whileTap={{ scale: 0.98 }}
       >
         {/* Glow */}
@@ -386,81 +381,11 @@ function EraCard({ era, offset, isActive, isExpanded, onSelect, onOpenModal, isM
             </div>
 
             {/* Click hint */}
-            {isActive && !isExpanded && (
+            {isActive && (
               <p style={{ marginTop: '24px', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
-                Click to see key events
+                Tap to explore →
               </p>
             )}
-
-            {/* Expanded content */}
-            <AnimatePresence>
-              {isExpanded && isActive && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  style={{ overflow: 'hidden' }}
-                >
-                  <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                    <p style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', marginBottom: '16px' }}>
-                      Key Events
-                    </p>
-                    
-                    {/* Events list */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {era.subEvents?.slice(0, 4).map((event, i) => (
-                        <motion.div
-                          key={i}
-                          style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: i * 0.05 }}
-                        >
-                          <div 
-                            style={{
-                              width: '36px',
-                              height: '36px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '16px',
-                              flexShrink: 0,
-                              background: `${era.color}12`
-                            }}
-                          >
-                            {event.icon}
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500 }}>{event.title}</p>
-                            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px' }}>{event.time}</p>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    {/* CTA Button */}
-                    <button
-                      style={{
-                        marginTop: '24px',
-                        width: '100%',
-                        padding: '12px',
-                        fontSize: '13px',
-                        fontWeight: 500,
-                        background: `${era.color}15`,
-                        border: `1px solid ${era.color}30`,
-                        color: era.color,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                      onClick={(e) => { e.stopPropagation(); onOpenModal(); }}
-                    >
-                      View Full Details →
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </div>
       </motion.div>

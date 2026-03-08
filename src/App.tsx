@@ -37,8 +37,7 @@ function LoadingFallback() {
 }
 
 function App() {
-  const { activeIndex, expandedEras } = useTimelineStore();
-  const isCardExpanded = expandedEras.size > 0;
+  const { activeIndex, isModalOpen } = useTimelineStore();
   
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0a0a0f]">
@@ -61,10 +60,10 @@ function App() {
 
         {/* UI Overlays */}
         <DetailModal />
-        <CosmicClock currentEraIndex={activeIndex} isCardExpanded={isCardExpanded} />
-        <CosmicStats currentEraIndex={activeIndex} isCardExpanded={isCardExpanded} />
-        <PixelScale isCardExpanded={isCardExpanded} />
-        <ZoomLevels isCardExpanded={isCardExpanded} />
+        <CosmicClock currentEraIndex={activeIndex} isCardExpanded={isModalOpen} />
+        <CosmicStats currentEraIndex={activeIndex} isCardExpanded={isModalOpen} />
+        <PixelScale isCardExpanded={isModalOpen} />
+        <ZoomLevels isCardExpanded={isModalOpen} />
       </Suspense>
     </div>
   );
