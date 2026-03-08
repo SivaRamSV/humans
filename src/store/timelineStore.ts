@@ -13,6 +13,7 @@ interface TimelineStore {
   expandedEras: Set<string>;
   zoomLevel: number;
   isModalOpen: boolean;
+  activeIndex: number;
   
   // Actions
   selectEra: (era: TimelineEra | null) => void;
@@ -20,6 +21,7 @@ interface TimelineStore {
   setZoomLevel: (level: number) => void;
   openModal: (era: TimelineEra) => void;
   closeModal: () => void;
+  setActiveIndex: (index: number) => void;
   reset: () => void;
 }
 
@@ -28,6 +30,7 @@ const initialState = {
   expandedEras: new Set<string>(),
   zoomLevel: 0,
   isModalOpen: false,
+  activeIndex: 0,
 };
 
 export const useTimelineStore = create<TimelineStore>()(
@@ -57,6 +60,9 @@ export const useTimelineStore = create<TimelineStore>()(
       closeModal: () =>
         set({ isModalOpen: false }),
 
+      setActiveIndex: (index) =>
+        set({ activeIndex: index }),
+
       reset: () => set(initialState),
     }),
     { name: 'timeline-store' }
@@ -68,3 +74,4 @@ export const useSelectedEra = () => useTimelineStore((state) => state.selectedEr
 export const useExpandedEras = () => useTimelineStore((state) => state.expandedEras);
 export const useZoomLevel = () => useTimelineStore((state) => state.zoomLevel);
 export const useIsModalOpen = () => useTimelineStore((state) => state.isModalOpen);
+export const useActiveIndex = () => useTimelineStore((state) => state.activeIndex);

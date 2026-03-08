@@ -2,7 +2,7 @@
 // SHELF TIMELINE - CLEAN PROFESSIONAL DESIGN
 // ========================================
 
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { timelineData } from '../data/timelineData';
 import { useTimelineStore } from '../store/timelineStore';
@@ -10,8 +10,7 @@ import { TimelineScrubber } from './TimelineScrubber';
 
 export function ShelfTimeline() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const { expandedEras, toggleExpanded, openModal } = useTimelineStore();
+  const { expandedEras, toggleExpanded, openModal, activeIndex, setActiveIndex } = useTimelineStore();
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -23,10 +22,10 @@ export function ShelfTimeline() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         e.preventDefault();
-        setActiveIndex(prev => Math.min(timelineData.length - 1, prev + 1));
+        setActiveIndex(Math.min(timelineData.length - 1, activeIndex + 1));
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         e.preventDefault();
-        setActiveIndex(prev => Math.max(0, prev - 1));
+        setActiveIndex(Math.max(0, activeIndex - 1));
       } else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         const currentEra = timelineData[activeIndex];
@@ -35,7 +34,7 @@ export function ShelfTimeline() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeIndex, toggleExpanded]);
+  }, [activeIndex, toggleExpanded, setActiveIndex]);
 
   // Mouse wheel navigation
   useEffect(() => {
@@ -53,9 +52,9 @@ export function ShelfTimeline() {
       clearTimeout(scrollTimeout);
       
       if (e.deltaY > 0 || e.deltaX > 0) {
-        setActiveIndex(prev => Math.min(timelineData.length - 1, prev + 1));
+        setActiveIndex(Math.min(timelineData.length - 1, activeIndex + 1));
       } else {
-        setActiveIndex(prev => Math.max(0, prev - 1));
+        setActiveIndex(Math.max(0, activeIndex - 1));
       }
 
       scrollTimeout = setTimeout(() => {
@@ -65,7 +64,7 @@ export function ShelfTimeline() {
 
     container.addEventListener('wheel', handleWheel, { passive: false });
     return () => container.removeEventListener('wheel', handleWheel);
-  }, []);
+  }, [activeIndex, setActiveIndex]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -101,13 +100,13 @@ export function ShelfTimeline() {
         {/* Nav arrows */}
         <NavArrow 
           direction="left" 
-          onClick={() => setActiveIndex(prev => Math.max(0, prev - 1))}
+          onClick={() => setActiveIndex(Math.max(0, activeIndex - 1))}
           disabled={activeIndex === 0}
           color={currentEra?.color}
         />
         <NavArrow 
           direction="right" 
-          onClick={() => setActiveIndex(prev => Math.min(timelineData.length - 1, prev + 1))}
+          onClick={() => setActiveIndex(Math.min(timelineData.length - 1, activeIndex + 1))}
           disabled={activeIndex === timelineData.length - 1}
           color={currentEra?.color}
         />

@@ -162,6 +162,61 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
               </motion.div>
             );
           })}
+
+          {/* YOU ARE HERE marker - pulsing at the right edge (present) */}
+          <motion.div
+            className="absolute top-1/2 -translate-y-1/2"
+            style={{ right: '0%', transform: 'translate(50%, -50%)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            {/* Pulsing outer ring */}
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center"
+              animate={{ scale: [1, 1.5, 1], opacity: [0.8, 0, 0.8] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <div 
+                className="w-6 h-6"
+                style={{
+                  border: '2px solid #ff006e',
+                  background: 'transparent',
+                }}
+              />
+            </motion.div>
+            
+            {/* Inner dot */}
+            <div 
+              className="w-4 h-4 flex items-center justify-center relative"
+              style={{
+                background: '#ff006e',
+                boxShadow: '0 0 20px #ff006e, 0 0 40px #ff006e50',
+              }}
+            >
+              <motion.div
+                className="absolute w-2 h-2 bg-white"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              />
+            </div>
+            
+            {/* Label */}
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap">
+              <motion.div
+                className="text-[8px] font-bold tracking-wider px-2 py-0.5"
+                style={{ 
+                  color: '#ff006e',
+                  background: 'rgba(255, 0, 110, 0.15)',
+                  border: '1px solid rgba(255, 0, 110, 0.3)'
+                }}
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                YOU ARE HERE
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
 
       {/* Scale labels - BELOW the timeline */}

@@ -10,8 +10,14 @@ import {
   CosmicBackground, 
   Header, 
   ShelfTimeline, 
-  DetailModal
+  DetailModal,
+  CosmicClock,
+  CosmicStats,
+  ShareButtons,
+  PixelScale,
+  ZoomLevels
 } from './components';
+import { useTimelineStore } from './store/timelineStore';
 
 // Loading fallback component
 function LoadingFallback() {
@@ -32,6 +38,8 @@ function LoadingFallback() {
 }
 
 function App() {
+  const { activeIndex } = useTimelineStore();
+  
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0a0a0f]">
       {/* 3D Cosmic Background */}
@@ -53,6 +61,11 @@ function App() {
 
         {/* UI Overlays */}
         <DetailModal />
+        <CosmicClock currentEraIndex={activeIndex} />
+        <CosmicStats currentEraIndex={activeIndex} />
+        <ShareButtons />
+        <PixelScale />
+        <ZoomLevels />
       </Suspense>
     </div>
   );

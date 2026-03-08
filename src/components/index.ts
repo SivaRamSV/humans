@@ -12,3 +12,8 @@ export { TimelineScrubber } from './TimelineScrubber';
 export { DetailModal } from './DetailModal';
 export { Navigation } from './Navigation';
 export { IntroAnimation } from './IntroAnimation';
+export { CosmicClock } from './CosmicClock';
+export { CosmicStats } from './CosmicStats';
+export { ShareButtons } from './ShareButtons';
+export { PixelScale } from './PixelScale';
+export { ZoomLevels } from './ZoomLevels';
