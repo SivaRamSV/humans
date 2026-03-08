@@ -11,7 +11,11 @@ const UNIVERSE_AGE = 13_800_000_000;
 const HUMAN_AGE = 300_000;
 const CIVILIZATION_AGE = 10_000;
 
-export function PixelScale() {
+interface PixelScaleProps {
+  isCardExpanded?: boolean;
+}
+
+export function PixelScale({ isCardExpanded }: PixelScaleProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1920);
 
@@ -30,8 +34,8 @@ export function PixelScale() {
     <motion.div
       className="fixed top-2 left-2 sm:top-6 sm:left-6 z-50 hidden sm:block"
       initial={{ opacity: 0, x: -50 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 1.2, duration: 0.8 }}
+      animate={{ opacity: isCardExpanded ? 0.15 : 1, x: 0 }}
+      transition={{ delay: isCardExpanded ? 0 : 1.2, duration: isCardExpanded ? 0.3 : 0.8 }}
     >
       <motion.button
         onClick={() => setIsExpanded(!isExpanded)}

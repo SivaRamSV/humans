@@ -49,9 +49,10 @@ function getCosmicDate(yearsAgo: number): { month: string; day: number; time: st
 
 interface CosmicClockProps {
   currentEraIndex: number;
+  isCardExpanded?: boolean;
 }
 
-export function CosmicClock({ currentEraIndex }: CosmicClockProps) {
+export function CosmicClock({ currentEraIndex, isCardExpanded }: CosmicClockProps) {
   const currentEra = timelineData[currentEraIndex];
   const cosmicDate = getCosmicDate(currentEra?.timeValue || 0);
   
@@ -59,8 +60,8 @@ export function CosmicClock({ currentEraIndex }: CosmicClockProps) {
     <motion.div
       className="fixed bottom-2 left-2 sm:bottom-4 sm:left-4 md:bottom-6 md:left-6 z-50"
       initial={{ opacity: 0, x: -50 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.5, duration: 0.8 }}
+      animate={{ opacity: isCardExpanded ? 0.15 : 1, x: 0 }}
+      transition={{ delay: isCardExpanded ? 0 : 0.5, duration: isCardExpanded ? 0.3 : 0.8 }}
     >
       <div
         className="p-2 sm:p-3 md:p-4 min-w-[140px] sm:min-w-[180px] md:min-w-[220px]"

@@ -10,6 +10,7 @@ import { timelineData } from '../data/timelineData';
 interface TimelineScrubberProps {
   activeIndex: number;
   onIndexChange: (index: number) => void;
+  isCardExpanded?: boolean;
 }
 
 // The oldest event (Big Bang) in years
@@ -44,7 +45,7 @@ const formatTime = (timeValue: number): string => {
 // Key indices to always show on mobile (first, middle-ish, last, and current)
 const KEY_INDICES = [0, 2, 5, 7, 9]; // Big Bang, some middle ones, humans
 
-export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubberProps) {
+export function TimelineScrubber({ activeIndex, onIndexChange, isCardExpanded }: TimelineScrubberProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -66,14 +67,18 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
   };
 
   return (
-    <div style={{ 
-      position: 'relative',
-      zIndex: 50,
-      marginTop: '70px',
-      background: 'linear-gradient(to bottom, rgba(5, 5, 15, 0.95) 0%, rgba(5, 5, 15, 0.7) 80%, transparent 100%)',
-      overflow: 'visible',
-    }}
-    className="px-12 py-1"
+    <motion.div 
+      className="px-12 py-1"
+      style={{ 
+        position: 'relative',
+        zIndex: 50,
+        marginTop: '70px',
+        background: 'linear-gradient(to bottom, rgba(5, 5, 15, 0.95) 0%, rgba(5, 5, 15, 0.7) 80%, transparent 100%)',
+        overflow: 'visible',
+        pointerEvents: isCardExpanded ? 'none' : 'auto',
+      }}
+      animate={{ opacity: isCardExpanded ? 0.15 : 1 }}
+      transition={{ duration: 0.3 }}
     >
       {/* Main Timeline Track - with extra padding for icons */}
       <div 
@@ -277,6 +282,6 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
           PRESENT →
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

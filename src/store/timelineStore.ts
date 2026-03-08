@@ -61,7 +61,7 @@ export const useTimelineStore = create<TimelineStore>()(
         set({ isModalOpen: false }),
 
       setActiveIndex: (index) =>
-        set({ activeIndex: index }),
+        set({ activeIndex: index, expandedEras: new Set<string>() }),
 
       reset: () => set(initialState),
     }),

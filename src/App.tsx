@@ -13,7 +13,6 @@ import {
   DetailModal,
   CosmicClock,
   CosmicStats,
-  ShareButtons,
   PixelScale,
   ZoomLevels
 } from './components';
@@ -38,7 +37,8 @@ function LoadingFallback() {
 }
 
 function App() {
-  const { activeIndex } = useTimelineStore();
+  const { activeIndex, expandedEras } = useTimelineStore();
+  const isCardExpanded = expandedEras.size > 0;
   
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0a0a0f]">
@@ -61,11 +61,10 @@ function App() {
 
         {/* UI Overlays */}
         <DetailModal />
-        <CosmicClock currentEraIndex={activeIndex} />
-        <CosmicStats currentEraIndex={activeIndex} />
-        <ShareButtons />
-        <PixelScale />
-        <ZoomLevels />
+        <CosmicClock currentEraIndex={activeIndex} isCardExpanded={isCardExpanded} />
+        <CosmicStats currentEraIndex={activeIndex} isCardExpanded={isCardExpanded} />
+        <PixelScale isCardExpanded={isCardExpanded} />
+        <ZoomLevels isCardExpanded={isCardExpanded} />
       </Suspense>
     </div>
   );

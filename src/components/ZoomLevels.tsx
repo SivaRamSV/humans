@@ -27,7 +27,11 @@ const zoomLevels: ZoomLevel[] = [
   { id: 'civilization', name: 'Civilization', range: '10K years', years: 10_000, color: '#ff006e', startIndex: 15 },
 ];
 
-export function ZoomLevels() {
+interface ZoomLevelsProps {
+  isCardExpanded?: boolean;
+}
+
+export function ZoomLevels({ isCardExpanded }: ZoomLevelsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeZoom, setActiveZoom] = useState('universe');
   const { setActiveIndex } = useTimelineStore();
@@ -44,10 +48,11 @@ export function ZoomLevels() {
 
   return (
     <motion.div
-      className="fixed left-1/2 -translate-x-1/2 bottom-6 z-50"
+      className="fixed left-1/2 -translate-x-1/2 bottom-4 sm:bottom-6 z-50 hidden sm:block"
       initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.8, duration: 0.8 }}
+      animate={{ opacity: isCardExpanded ? 0.15 : 1, y: 0 }}
+      transition={{ delay: isCardExpanded ? 0 : 0.8, duration: isCardExpanded ? 0.3 : 0.8 }}
+      style={{ pointerEvents: isCardExpanded ? 'none' : 'auto' }}
     >
       {/* Toggle button */}
       <motion.button

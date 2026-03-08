@@ -164,10 +164,10 @@ export function ShelfTimeline() {
       />
 
       {/* Timeline at TOP */}
-      <TimelineScrubber activeIndex={activeIndex} onIndexChange={setActiveIndex} />
+      <TimelineScrubber activeIndex={activeIndex} onIndexChange={setActiveIndex} isCardExpanded={expandedEras.size > 0} />
 
       {/* Main content - Cards below timeline */}
-      <div className="flex-1 flex items-center justify-center relative -mt-8" style={{ perspective: '1200px' }}>
+      <div className="flex-1 flex items-center justify-center relative" style={{ perspective: '1200px', marginTop: isMobile ? '-120px' : '-60px' }}>
         
         {/* Nav arrows */}
         <NavArrow 
