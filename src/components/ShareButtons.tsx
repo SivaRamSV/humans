@@ -46,7 +46,7 @@ export function ShareButtons() {
 
   return (
     <motion.div
-      className="fixed top-6 right-6 z-50"
+      className="fixed top-2 right-2 sm:top-6 sm:right-6 z-50"
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 1.5, duration: 0.8 }}
@@ -55,18 +55,18 @@ export function ShareButtons() {
         style={{
           background: 'rgba(0, 0, 0, 0.7)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '8px',
         }}
+        className="p-1 sm:p-2"
       >
-        <div className="text-[8px] text-white/40 font-mono tracking-wider mb-2 text-center">
+        <div className="hidden sm:block text-[8px] text-white/40 font-mono tracking-wider mb-2 text-center">
           SHARE
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2">
           {shareLinks.map((link) => (
             <motion.button
               key={link.name}
               onClick={() => handleShare(link.url)}
-              className="w-8 h-8 flex items-center justify-center text-sm font-bold"
+              className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-sm font-bold"
               style={{
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: `1px solid ${link.color}50`,

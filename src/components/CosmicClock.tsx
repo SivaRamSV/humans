@@ -57,48 +57,48 @@ export function CosmicClock({ currentEraIndex }: CosmicClockProps) {
   
   return (
     <motion.div
-      className="fixed bottom-6 left-6 z-50"
+      className="fixed bottom-2 left-2 sm:bottom-4 sm:left-4 md:bottom-6 md:left-6 z-50"
       initial={{ opacity: 0, x: -50 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.5, duration: 0.8 }}
     >
       <div
+        className="p-2 sm:p-3 md:p-4 min-w-[140px] sm:min-w-[180px] md:min-w-[220px]"
         style={{
-          background: 'rgba(0, 0, 0, 0.85)',
+          background: 'rgba(0, 0, 0, 0.9)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '16px 20px',
-          minWidth: '220px',
         }}
       >
         {/* Header */}
-        <div className="text-[10px] text-white/40 font-mono tracking-wider mb-2">
-          IF THE UNIVERSE WERE ONE YEAR
+        <div className="text-[7px] sm:text-[8px] md:text-[10px] text-white/40 font-mono tracking-wider mb-1 sm:mb-2">
+          <span className="hidden sm:inline">IF THE UNIVERSE WERE ONE YEAR</span>
+          <span className="sm:hidden">COSMIC CALENDAR</span>
         </div>
         
         {/* Current cosmic date */}
-        <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-2xl">{currentEra?.icon}</span>
+        <div className="flex items-baseline gap-1 sm:gap-2 mb-1 sm:mb-3">
+          <span className="text-lg sm:text-xl md:text-2xl">{currentEra?.icon}</span>
           <div>
-            <div className="text-white font-bold text-lg">
+            <div className="text-white font-bold text-sm sm:text-base md:text-lg">
               {cosmicDate.month} {cosmicDate.day}
             </div>
             {cosmicDate.time && (
-              <div className="text-cyan-400 font-mono text-sm">
+              <div className="text-cyan-400 font-mono text-[10px] sm:text-xs md:text-sm">
                 {cosmicDate.time}
               </div>
             )}
           </div>
         </div>
         
-        {/* Current era name */}
-        <div className="text-white/60 text-xs mb-3">
+        {/* Current era name - hidden on mobile */}
+        <div className="text-white/60 text-[10px] sm:text-xs mb-1 sm:mb-3 hidden sm:block">
           {currentEra?.title}
         </div>
         
-        {/* Mini timeline */}
-        <div className="border-t border-white/10 pt-3">
-          <div className="text-[9px] text-white/30 font-mono mb-2">KEY DATES</div>
-          <div className="space-y-1 max-h-32 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
+        {/* Mini timeline - hidden on very small screens */}
+        <div className="border-t border-white/10 pt-1 sm:pt-3 hidden sm:block">
+          <div className="text-[8px] sm:text-[9px] text-white/30 font-mono mb-1 sm:mb-2">KEY DATES</div>
+          <div className="space-y-0.5 sm:space-y-1 max-h-24 sm:max-h-32 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
             {[
               { name: 'Big Bang', date: 'Jan 1' },
               { name: 'Earth Forms', date: 'Sep 2' },
@@ -107,7 +107,7 @@ export function CosmicClock({ currentEraIndex }: CosmicClockProps) {
               { name: 'Humans', date: 'Dec 31, 23:59:46' },
               { name: 'Civilization', date: 'Dec 31, 23:59:59.5' },
             ].map((event, i) => (
-              <div key={i} className="flex justify-between text-[10px]">
+              <div key={i} className="flex justify-between text-[8px] sm:text-[10px]">
                 <span className="text-white/50">{event.name}</span>
                 <span className="text-amber-400/70 font-mono">{event.date}</span>
               </div>

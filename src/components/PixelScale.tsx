@@ -28,7 +28,7 @@ export function PixelScale() {
 
   return (
     <motion.div
-      className="fixed top-6 left-6 z-50"
+      className="fixed top-2 left-2 sm:top-6 sm:left-6 z-50 hidden sm:block"
       initial={{ opacity: 0, x: -50 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 1.2, duration: 0.8 }}
@@ -38,15 +38,15 @@ export function PixelScale() {
         style={{
           background: 'rgba(0, 0, 0, 0.85)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '10px 14px',
           cursor: 'pointer',
         }}
+        className="p-2 sm:px-3.5 sm:py-2.5"
         whileHover={{ borderColor: 'rgba(0, 245, 255, 0.3)' }}
       >
-        <div className="text-[9px] text-white/40 font-mono tracking-wider mb-1">
+        <div className="text-[8px] sm:text-[9px] text-white/40 font-mono tracking-wider mb-1">
           SCALE
         </div>
-        <div className="text-cyan-400 font-mono text-sm font-bold">
+        <div className="text-cyan-400 font-mono text-xs sm:text-sm font-bold">
           1px = {(yearsPerPixel / 1_000_000).toFixed(1)}M years
         </div>
       </motion.button>

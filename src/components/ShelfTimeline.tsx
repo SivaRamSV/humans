@@ -2,15 +2,42 @@
 // SHELF TIMELINE - CLEAN PROFESSIONAL DESIGN
 // ========================================
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { timelineData } from '../data/timelineData';
 import { useTimelineStore } from '../store/timelineStore';
 import { TimelineScrubber } from './TimelineScrubber';
 
+// Custom hook for responsive breakpoints
+function useBreakpoint() {
+  const [breakpoint, setBreakpoint] = useState({
+    isMobile: typeof window !== 'undefined' ? window.innerWidth < 640 : false,
+    isTablet: typeof window !== 'undefined' ? window.innerWidth >= 640 && window.innerWidth < 1024 : false,
+    isDesktop: typeof window !== 'undefined' ? window.innerWidth >= 1024 : true,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setBreakpoint({
+        isMobile: width < 640,
+        isTablet: width >= 640 && width < 1024,
+        isDesktop: width >= 1024,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Call once on mount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return breakpoint;
+}
+
 export function ShelfTimeline() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { expandedEras, toggleExpanded, openModal, activeIndex, setActiveIndex } = useTimelineStore();
+  const { isMobile, isTablet } = useBreakpoint();
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -66,6 +93,51 @@ export function ShelfTimeline() {
     return () => container.removeEventListener('wheel', handleWheel);
   }, [activeIndex, setActiveIndex]);
 
+  // Touch swipe navigation for mobile
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isSwiping = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isSwiping = false;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isSwiping) return;
+      
+      const touchEndX = e.touches[0].clientX;
+      const touchEndY = e.touches[0].clientY;
+      const diffX = touchStartX - touchEndX;
+      const diffY = touchStartY - touchEndY;
+      
+      // Only trigger if horizontal swipe is dominant
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        isSwiping = true;
+        if (diffX > 0) {
+          // Swipe left - go to next
+          setActiveIndex(Math.min(timelineData.length - 1, activeIndex + 1));
+        } else {
+          // Swipe right - go to previous
+          setActiveIndex(Math.max(0, activeIndex - 1));
+        }
+      }
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: true });
+    
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [activeIndex, setActiveIndex]);
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
@@ -95,7 +167,7 @@ export function ShelfTimeline() {
       <TimelineScrubber activeIndex={activeIndex} onIndexChange={setActiveIndex} />
 
       {/* Main content - Cards below timeline */}
-      <div className="flex-1 flex items-center justify-center relative" style={{ perspective: '1200px' }}>
+      <div className="flex-1 flex items-center justify-center relative -mt-8" style={{ perspective: '1200px' }}>
         
         {/* Nav arrows */}
         <NavArrow 
@@ -113,16 +185,16 @@ export function ShelfTimeline() {
 
         {/* Carousel */}
         <motion.div 
-          className="relative w-full max-w-6xl mx-auto h-[480px] flex items-center justify-center"
+          className="relative w-full max-w-sm sm:max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto h-[380px] sm:h-[420px] md:h-[480px] flex items-center justify-center px-8 sm:px-12 md:px-16"
           style={{
             rotateX: useTransform(springY, [-10, 10], [2, -2]),
             rotateY: useTransform(springX, [-15, 15], [-2, 2]),
             transformStyle: 'preserve-3d',
           }}
         >
-          {/* Side masks */}
-          <div className="absolute left-0 top-0 bottom-0 w-72 bg-gradient-to-r from-[#0a0a0f] from-50% to-transparent z-30 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-72 bg-gradient-to-l from-[#0a0a0f] from-50% to-transparent z-30 pointer-events-none" />
+          {/* Side masks - smaller on mobile */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 md:w-72 bg-gradient-to-r from-[#0a0a0f] from-50% to-transparent z-30 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 md:w-72 bg-gradient-to-l from-[#0a0a0f] from-50% to-transparent z-30 pointer-events-none" />
 
           {/* Cards */}
           <AnimatePresence mode="popLayout">
@@ -140,6 +212,8 @@ export function ShelfTimeline() {
                   isExpanded={expandedEras.has(era.id)}
                   onSelect={() => offset === 0 ? toggleExpanded(era.id) : setActiveIndex(index)}
                   onOpenModal={() => openModal(era)}
+                  isMobile={isMobile}
+                  isTablet={isTablet}
                 />
               );
             })}
@@ -150,7 +224,7 @@ export function ShelfTimeline() {
   );
 }
 
-// Nav Arrow
+// Nav Arrow - Responsive
 function NavArrow({ direction, onClick, disabled, color = '#00f5ff' }: {
   direction: 'left' | 'right';
   onClick: () => void;
@@ -159,8 +233,8 @@ function NavArrow({ direction, onClick, disabled, color = '#00f5ff' }: {
 }) {
   return (
     <motion.button
-      className={`absolute ${direction === 'left' ? 'left-6' : 'right-6'} z-40 
-        w-12 h-12 flex items-center justify-center`}
+      className={`absolute ${direction === 'left' ? 'left-1 sm:left-4 md:left-6' : 'right-1 sm:right-4 md:right-6'} z-40 
+        w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center`}
       style={{
         background: 'rgba(15, 15, 25, 0.6)',
         border: `1px solid ${disabled ? 'rgba(255,255,255,0.1)' : color + '30'}`,
@@ -171,26 +245,29 @@ function NavArrow({ direction, onClick, disabled, color = '#00f5ff' }: {
       whileTap={disabled ? {} : { scale: 0.95 }}
       animate={{ opacity: disabled ? 0.3 : 1 }}
     >
-      <span style={{ color: disabled ? 'rgba(255,255,255,0.3)' : color, fontSize: '20px' }}>
+      <span style={{ color: disabled ? 'rgba(255,255,255,0.3)' : color }} className="text-base sm:text-lg md:text-xl">
         {direction === 'left' ? '‹' : '›'}
       </span>
     </motion.button>
   );
 }
 
-// Era Card - Clean Professional Design with inline styles
-function EraCard({ era, offset, isActive, isExpanded, onSelect, onOpenModal }: {
+// Era Card - Clean Professional Design with responsive sizing
+function EraCard({ era, offset, isActive, isExpanded, onSelect, onOpenModal, isMobile, isTablet }: {
   era: typeof timelineData[0];
   offset: number;
   isActive: boolean;
   isExpanded: boolean;
   onSelect: () => void;
   onOpenModal: () => void;
+  isMobile: boolean;
+  isTablet: boolean;
 }) {
   const absOffset = Math.abs(offset);
   
-  const xOffset = offset * 500;
-  const zOffset = -absOffset * 200;
+  const xMultiplier = isMobile ? 280 : isTablet ? 380 : 500;
+  const xOffset = offset * xMultiplier;
+  const zOffset = -absOffset * (isMobile ? 100 : 200);
   const rotateY = offset * -15;
   const scale = isActive ? 1 : 0.55;
   const cardOpacity = isActive ? 1 : 0.2;
@@ -202,6 +279,9 @@ function EraCard({ era, offset, isActive, isExpanded, onSelect, onOpenModal }: {
     return `${val} years ago`;
   };
 
+  // Responsive card width
+  const cardWidth = isMobile ? '280px' : isTablet ? '340px' : '420px';
+
   return (
     <motion.div
       className="absolute"
@@ -212,7 +292,7 @@ function EraCard({ era, offset, isActive, isExpanded, onSelect, onOpenModal }: {
       style={{ transformStyle: 'preserve-3d', zIndex: isActive ? 20 : 10 - absOffset }}
     >
       <motion.div
-        style={{ width: '420px', cursor: 'pointer', userSelect: 'none' }}
+        style={{ width: cardWidth, cursor: 'pointer', userSelect: 'none' }}
         onClick={onSelect}
         onDoubleClick={onOpenModal}
         whileTap={{ scale: 0.98 }}
@@ -242,21 +322,21 @@ function EraCard({ era, offset, isActive, isExpanded, onSelect, onOpenModal }: {
           }}
         >
           {/* Accent line */}
-          <div style={{ height: '3px', background: era.color }} />
+          <div style={{ height: isMobile ? '2px' : '3px', background: era.color }} />
 
-          {/* Content with generous padding */}
-          <div style={{ padding: '28px' }}>
+          {/* Content with responsive padding */}
+          <div style={{ padding: isMobile ? '16px' : isTablet ? '20px' : '28px' }}>
             {/* Header row */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: isMobile ? '10px' : '16px', marginBottom: isMobile ? '12px' : '20px' }}>
               {/* Icon */}
               <div 
                 style={{
-                  width: '48px',
-                  height: '48px',
+                  width: isMobile ? '36px' : '48px',
+                  height: isMobile ? '36px' : '48px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '24px',
+                  fontSize: isMobile ? '18px' : '24px',
                   flexShrink: 0,
                   background: `${era.color}15`,
                   border: `1px solid ${era.color}30`,
@@ -268,7 +348,7 @@ function EraCard({ era, offset, isActive, isExpanded, onSelect, onOpenModal }: {
               {/* Title & Time */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ 
-                  fontSize: '11px', 
+                  fontSize: isMobile ? '9px' : '11px', 
                   fontWeight: 500, 
                   textTransform: 'uppercase', 
                   letterSpacing: '0.1em',
@@ -277,14 +357,14 @@ function EraCard({ era, offset, isActive, isExpanded, onSelect, onOpenModal }: {
                 }}>
                   {formatTime(era.timeValue)}
                 </p>
-                <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'white', lineHeight: 1.3 }}>
+                <h2 style={{ fontSize: isMobile ? '15px' : isTablet ? '17px' : '20px', fontWeight: 'bold', color: 'white', lineHeight: 1.3 }}>
                   {era.title}
                 </h2>
               </div>
             </div>
 
             {/* Description */}
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', lineHeight: 1.7, marginBottom: '20px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: isMobile ? '11px' : '13px', lineHeight: 1.6, marginBottom: isMobile ? '12px' : '20px' }}>
               {era.description}
             </p>
 

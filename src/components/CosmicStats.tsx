@@ -57,43 +57,44 @@ export function CosmicStats({ currentEraIndex }: CosmicStatsProps) {
   
   return (
     <motion.div
-      className="fixed bottom-6 right-6 z-50"
+      className="fixed bottom-2 right-2 sm:bottom-4 sm:right-4 md:bottom-6 md:right-6 z-50"
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.7, duration: 0.8 }}
     >
       <div
+        className="p-2 sm:p-3 md:p-4 min-w-[130px] sm:min-w-[180px] md:min-w-[240px]"
         style={{
-          background: 'rgba(0, 0, 0, 0.85)',
+          background: 'rgba(0, 0, 0, 0.9)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '16px 20px',
-          minWidth: '240px',
         }}
       >
         {/* Header */}
-        <div className="text-[10px] text-white/40 font-mono tracking-wider mb-3">
-          COSMIC PERSPECTIVE
+        <div className="text-[7px] sm:text-[8px] md:text-[10px] text-white/40 font-mono tracking-wider mb-1 sm:mb-3">
+          <span className="hidden sm:inline">COSMIC PERSPECTIVE</span>
+          <span className="sm:hidden">POSITION</span>
         </div>
         
         {/* Main shocking stat */}
-        <div className="mb-4">
-          <div className="text-white/50 text-[10px] mb-1">POSITION IN COSMIC HISTORY</div>
-          <div className="flex items-baseline gap-2">
+        <div className="mb-2 sm:mb-4">
+          <div className="text-white/50 text-[8px] sm:text-[10px] mb-0.5 sm:mb-1 hidden sm:block">POSITION IN COSMIC HISTORY</div>
+          <div className="flex items-baseline gap-1 sm:gap-2">
             <span 
-              className="text-3xl font-bold font-mono"
+              className="text-xl sm:text-2xl md:text-3xl font-bold font-mono"
               style={{ color: currentEra?.color || '#fff' }}
             >
-              {percentComplete.toFixed(percentComplete > 99.99 ? 6 : 2)}%
+              {percentComplete.toFixed(percentComplete > 99.99 ? 4 : 2)}%
             </span>
           </div>
-          <div className="text-white/30 text-[10px] mt-1">
-            through the universe's timeline
+          <div className="text-white/30 text-[8px] sm:text-[10px] mt-0.5 sm:mt-1">
+            <span className="hidden sm:inline">through the universe's timeline</span>
+            <span className="sm:hidden">cosmic history</span>
           </div>
         </div>
         
         {/* Progress bar */}
-        <div className="mb-4">
-          <div className="h-2 bg-white/10 relative overflow-hidden">
+        <div className="mb-2 sm:mb-4">
+          <div className="h-1 sm:h-2 bg-white/10 relative overflow-hidden">
             <motion.div
               className="absolute inset-y-0 left-0"
               style={{ background: currentEra?.color || '#fff' }}
@@ -104,13 +105,13 @@ export function CosmicStats({ currentEraIndex }: CosmicStatsProps) {
           </div>
         </div>
         
-        {/* Context stats */}
-        <div className="space-y-2 border-t border-white/10 pt-3">
+        {/* Context stats - hidden on mobile */}
+        <div className="space-y-1 sm:space-y-2 border-t border-white/10 pt-1 sm:pt-3 hidden sm:block">
           {stats.map((stat, i) => (
             <div key={i} className="flex justify-between items-center">
-              <span className="text-white/50 text-[10px]">{stat.label}</span>
+              <span className="text-white/50 text-[8px] sm:text-[10px]">{stat.label}</span>
               <span 
-                className="font-mono text-xs font-bold"
+                className="font-mono text-[10px] sm:text-xs font-bold"
                 style={{ color: stat.color }}
               >
                 {stat.value}
@@ -119,18 +120,18 @@ export function CosmicStats({ currentEraIndex }: CosmicStatsProps) {
           ))}
         </div>
         
-        {/* Shocking comparison for human era */}
+        {/* Shocking comparison for human era - hidden on mobile */}
         {yearsAgo < 1_000_000 && (
           <motion.div
-            className="mt-4 pt-3 border-t border-white/10"
+            className="mt-2 sm:mt-4 pt-2 sm:pt-3 border-t border-white/10 hidden sm:block"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
           >
-            <div className="text-[10px] text-amber-400/80 font-mono">
+            <div className="text-[8px] sm:text-[10px] text-amber-400/80 font-mono">
               ⚡ PERSPECTIVE CHECK
             </div>
-            <div className="text-white/60 text-[11px] mt-1 leading-relaxed">
+            <div className="text-white/60 text-[9px] sm:text-[11px] mt-1 leading-relaxed">
               If Earth's history were 24 hours,<br/>
               humans appear at <span className="text-cyan-400 font-bold">23:59:56</span>
             </div>

@@ -29,8 +29,10 @@ body {
   background: var(--bg-dark);
   color: var(--text-primary);
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
   overflow-x: hidden;
   overflow-y: hidden;
+  touch-action: pan-y; /* Allow vertical touch but we handle horizontal */
 }
 
 /* Hide scrollbar completely */
@@ -41,6 +43,12 @@ body {
 body {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Custom xs breakpoint for very small screens */
+@media (min-width: 375px) {
+  .xs\:block { display: block; }
+  .xs\:hidden { display: none; }
 }
 
 /* Glass morphism utility */
@@ -56,6 +64,20 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  /* Reduce animation complexity on mobile for performance */
+  .animate-float {
+    animation: none;
+  }
+  
+  /* Adjust for safe areas on iPhone X+ */
+  .safe-area-inset {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
 /* Animation keyframes */

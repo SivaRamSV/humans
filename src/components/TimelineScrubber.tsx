@@ -3,7 +3,7 @@
 // Shows actual time scale - visualizes how recent humans are
 // ========================================
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { timelineData } from '../data/timelineData';
 
@@ -17,12 +17,15 @@ const MAX_TIME = 13800000000;
 
 // Use logarithmic scale to make recent events visible while showing proportions
 // OLD events (Big Bang) = LEFT (0%), NEW events (Humans) = RIGHT (100%)
+// Clamp to 3-97% so icons at edges aren't cut off
 const getLogPosition = (timeValue: number): number => {
   const minLog = Math.log10(200000); // ~200K years (modern humans)
   const maxLog = Math.log10(MAX_TIME);
   const currentLog = Math.log10(Math.max(timeValue, 200000));
   // Invert: older (bigger number) = left, newer (smaller number) = right
-  return 100 - ((currentLog - minLog) / (maxLog - minLog)) * 100;
+  const rawPosition = 100 - ((currentLog - minLog) / (maxLog - minLog)) * 100;
+  // Clamp between 3% and 97% so edge icons are fully visible
+  return Math.max(3, Math.min(97, rawPosition));
 };
 
 // Format time for display
@@ -38,37 +41,58 @@ const formatTime = (timeValue: number): string => {
   return `${timeValue}`;
 };
 
+// Key indices to always show on mobile (first, middle-ish, last, and current)
+const KEY_INDICES = [0, 2, 5, 7, 9]; // Big Bang, some middle ones, humans
+
 export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubberProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const currentEra = timelineData[activeIndex];
+  
+  // On mobile, show fewer icons to avoid overlap
+  const shouldShowIcon = (index: number) => {
+    if (!isMobile) return true;
+    // Always show: first, last, active, and some key milestones
+    return index === 0 || index === timelineData.length - 1 || index === activeIndex || KEY_INDICES.includes(index);
+  };
 
   return (
     <div style={{ 
       position: 'relative',
       zIndex: 50,
-      paddingLeft: '48px',
-      paddingRight: '48px',
-      paddingTop: '24px',
-      paddingBottom: '4px',
-      marginTop: '32px',
+      marginTop: '70px',
       background: 'linear-gradient(to bottom, rgba(5, 5, 15, 0.95) 0%, rgba(5, 5, 15, 0.7) 80%, transparent 100%)',
-    }}>
-      {/* Main Timeline Track - FIRST */}
+      overflow: 'visible',
+    }}
+    className="px-12 py-1"
+    >
+      {/* Main Timeline Track - with extra padding for icons */}
       <div 
         ref={containerRef}
         className="relative h-16"
+        style={{ overflow: 'visible' }}
         >
-          {/* Background track */}
-          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-white/5" />
-          
-          {/* Colored progress track - from left to current position */}
+          {/* Background track - starts from Big Bang position (3%) */}
           <div 
-            className="absolute top-1/2 -translate-y-1/2 h-1"
+            className="absolute top-1/2 -translate-y-1/2 h-0.5 sm:h-1 bg-white/5"
+            style={{ left: '3%', right: '3%' }}
+          />
+          
+          {/* Colored progress track - from Big Bang (3%) to current position */}
+          <div 
+            className="absolute top-1/2 -translate-y-1/2 h-0.5 sm:h-1"
             style={{
-              left: 0,
-              width: `${getLogPosition(currentEra?.timeValue || MAX_TIME)}%`,
+              left: '3%',
+              width: `${Math.max(0, getLogPosition(currentEra?.timeValue || MAX_TIME) - 3)}%`,
               background: `linear-gradient(90deg, ${timelineData[0]?.color}, ${currentEra?.color})`,
               boxShadow: `0 0 20px ${currentEra?.color}50`
             }}
@@ -79,6 +103,27 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
             const position = getLogPosition(era.timeValue);
             const isActive = index === activeIndex;
             const isHovered = index === hoveredIndex;
+            const showIcon = shouldShowIcon(index);
+            
+            // On mobile, render smaller dots for hidden icons, full icons for shown ones
+            if (!showIcon) {
+              return (
+                <motion.div
+                  key={era.id}
+                  className="absolute top-1/2 -translate-y-1/2 cursor-pointer"
+                  style={{ left: `${position}%`, transform: 'translate(-50%, -50%)' }}
+                  onClick={() => onIndexChange(index)}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      background: era.color,
+                      opacity: 0.5,
+                    }}
+                  />
+                </motion.div>
+              );
+            }
             
             return (
               <motion.div
@@ -89,16 +134,16 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
                 onMouseLeave={() => setHoveredIndex(null)}
                 onClick={() => onIndexChange(index)}
               >
-                {/* Icon marker */}
+                {/* Icon marker - responsive size */}
                 <motion.div
                   className="relative flex items-center justify-center"
                   animate={{ 
-                    scale: isActive ? 1.2 : isHovered ? 1.1 : 0.9,
+                    scale: isActive ? 1.15 : isHovered ? 1.05 : 1,
                   }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
                   <div
-                    className="w-11 h-11 flex items-center justify-center text-lg"
+                    className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center text-base sm:text-lg md:text-xl"
                     style={{
                       background: isActive 
                         ? `linear-gradient(135deg, ${era.color}, ${era.color}80)`
@@ -113,9 +158,9 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
                   </div>
                 </motion.div>
 
-                {/* Vertical line BELOW the icon */}
+                {/* Vertical line BELOW the icon - hidden on mobile */}
                 <div 
-                  className="absolute left-1/2 -translate-x-1/2 w-px"
+                  className="absolute left-1/2 -translate-x-1/2 w-px hidden sm:block"
                   style={{
                     height: isActive ? 32 : isHovered ? 24 : 16,
                     top: '100%',
@@ -126,29 +171,29 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
                   }}
                 />
 
-                {/* Time label below */}
+                {/* Time label below - hidden on small screens, show only for active */}
                 <motion.div
-                  className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-center"
+                  className="absolute top-full mt-1 sm:mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-center hidden sm:block"
                   animate={{ opacity: isActive || isHovered ? 1 : 0.4 }}
                 >
                   <div 
-                    className="text-[9px] font-bold tracking-wide"
+                    className="text-[7px] sm:text-[8px] md:text-[9px] font-bold tracking-wide"
                     style={{ color: era.color }}
                   >
                     {formatTime(era.timeValue)}
                   </div>
                 </motion.div>
 
-                {/* Tooltip on hover/active */}
+                {/* Tooltip on hover/active - hidden on mobile */}
                 {(isActive || isHovered) && (
                   <motion.div
-                    className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 whitespace-nowrap"
+                    className="absolute bottom-full mb-2 sm:mb-3 left-1/2 -translate-x-1/2 whitespace-nowrap hidden sm:block"
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                   >
                     <div 
-                      className="px-3 py-1.5 text-xs font-medium"
+                      className="px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-medium"
                       style={{
                         background: `${era.color}20`,
                         border: `1px solid ${era.color}40`,
@@ -163,10 +208,10 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
             );
           })}
 
-          {/* YOU ARE HERE marker - pulsing at the right edge (present) */}
+          {/* YOU ARE HERE marker - pulsing near the right edge (present) */}
           <motion.div
             className="absolute top-1/2 -translate-y-1/2"
-            style={{ right: '0%', transform: 'translate(50%, -50%)' }}
+            style={{ right: '3%', transform: 'translate(50%, -50%)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
@@ -178,7 +223,7 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
               transition={{ duration: 2, repeat: Infinity }}
             >
               <div 
-                className="w-6 h-6"
+                className="w-4 h-4 sm:w-6 sm:h-6"
                 style={{
                   border: '2px solid #ff006e',
                   background: 'transparent',
@@ -186,25 +231,25 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
               />
             </motion.div>
             
-            {/* Inner dot */}
+            {/* Inner dot - responsive */}
             <div 
-              className="w-4 h-4 flex items-center justify-center relative"
+              className="w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center relative"
               style={{
                 background: '#ff006e',
                 boxShadow: '0 0 20px #ff006e, 0 0 40px #ff006e50',
               }}
             >
               <motion.div
-                className="absolute w-2 h-2 bg-white"
+                className="absolute w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white"
                 animate={{ opacity: [1, 0.5, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
               />
             </div>
             
-            {/* Label */}
-            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap">
+            {/* Label - always visible */}
+            <div className="absolute top-full mt-1 sm:mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap">
               <motion.div
-                className="text-[8px] font-bold tracking-wider px-2 py-0.5"
+                className="text-[6px] sm:text-[8px] font-bold tracking-wider px-1 sm:px-2 py-0.5"
                 style={{ 
                   color: '#ff006e',
                   background: 'rgba(255, 0, 110, 0.15)',
@@ -213,21 +258,22 @@ export function TimelineScrubber({ activeIndex, onIndexChange }: TimelineScrubbe
                 animate={{ opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                YOU ARE HERE
+                <span className="hidden sm:inline">YOU ARE HERE</span>
+                <span className="sm:hidden">NOW</span>
               </motion.div>
             </div>
           </motion.div>
         </div>
 
-      {/* Scale labels - BELOW the timeline */}
-      <div className="flex justify-between items-center mt-12 px-2">
-        <div className="text-[11px] text-cyan-400/70 font-mono font-medium tracking-wide">
+      {/* Scale labels - BELOW the timeline - responsive */}
+      <div className="flex justify-between items-center mt-8 sm:mt-12 md:mt-14 px-1 sm:px-2">
+        <div className="text-[9px] sm:text-[10px] md:text-[11px] text-cyan-400/70 font-mono font-medium tracking-wide">
           ← BIG BANG
         </div>
-        <div className="text-[12px] text-white/50 font-mono font-semibold tracking-wider">
+        <div className="text-[10px] sm:text-[11px] md:text-[12px] text-white/50 font-mono font-semibold tracking-wider">
           COSMIC TIMELINE
         </div>
-        <div className="text-[11px] text-amber-400/70 font-mono font-medium tracking-wide">
+        <div className="text-[9px] sm:text-[10px] md:text-[11px] text-amber-400/70 font-mono font-medium tracking-wide">
           PRESENT →
         </div>
       </div>
